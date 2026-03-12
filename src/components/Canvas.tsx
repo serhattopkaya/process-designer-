@@ -13,7 +13,7 @@ import '@xyflow/react/dist/style.css';
 import { useStore } from '../store/useStore';
 import { nodeTypes } from './nodes';
 import ContextMenu from './ContextMenu';
-import type { ProcessNodeType, ProcessNode, ProcessEdge } from '../types';
+import type { AppNodeType, ProcessNode, ProcessEdge } from '../types';
 
 export default function Canvas() {
   const {
@@ -41,7 +41,7 @@ export default function Canvas() {
   const onDrop = useCallback(
     (event: DragEvent) => {
       event.preventDefault();
-      const type = event.dataTransfer.getData('application/processnode') as ProcessNodeType;
+      const type = event.dataTransfer.getData('application/processnode') as AppNodeType;
       if (!type) return;
 
       const position = screenToFlowPosition({
@@ -91,7 +91,7 @@ export default function Canvas() {
     if (!contextMenu) return;
     const node = nodes.find((n) => n.id === contextMenu.nodeId) as ProcessNode | undefined;
     if (!node) return;
-    addNode(node.type as ProcessNodeType, {
+    addNode(node.type as AppNodeType, {
       x: node.position.x + 40,
       y: node.position.y + 40,
     });

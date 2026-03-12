@@ -1,0 +1,8 @@
+I would like to build a build a solution modular designer. On the left side, I would like to see list of my solution blocks(eg:PLC, PLC Data Reader,  MS SQL Server, Azure Function, REST API, KAFKA etc).
+
+I would like to draw my solution from drag and drop, I also woould like to define each communication protocol between each block.
+
+In addition to communication protocol between each block, I wouldl like to define the data model. 
+
+
+For example There is arrow from PLC to PLC REader, I would like to define the protocol on this line. (EG:Siemens S7)

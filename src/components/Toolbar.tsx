@@ -24,6 +24,8 @@ export default function Toolbar() {
   const importFromJson = useStore((s) => s.importFromJson);
   const darkMode = useStore((s) => s.darkMode);
   const toggleDarkMode = useStore((s) => s.toggleDarkMode);
+  const mode = useStore((s) => s.mode);
+  const setMode = useStore((s) => s.setMode);
   const canUndo = useStore((s) => s.historyIndex > 0);
   const canRedo = useStore((s) => s.historyIndex < s.history.length - 1);
 
@@ -84,14 +86,30 @@ export default function Toolbar() {
       className="flex items-center gap-0.5 border-b bg-white/80 px-3 py-1.5 backdrop-blur-sm dark:bg-slate-900/80"
       style={{ borderColor: 'var(--border-color)' }}
     >
-      {/* App Title */}
-      <div className="mr-4 flex items-center gap-2">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500 text-white">
-          <LayoutGrid size={14} />
-        </div>
-        <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-          Process Designer
-        </span>
+      {/* Mode Toggle */}
+      <div className="mr-4 flex items-center gap-1 rounded-lg border p-0.5" style={{ borderColor: 'var(--border-color)' }}>
+        <button
+          onClick={() => setMode('processFlow')}
+          className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+            mode === 'processFlow'
+              ? 'bg-blue-500 text-white shadow-sm'
+              : 'hover:bg-gray-100 dark:hover:bg-slate-700'
+          }`}
+          style={mode !== 'processFlow' ? { color: 'var(--text-secondary)' } : undefined}
+        >
+          Process Flow
+        </button>
+        <button
+          onClick={() => setMode('solutionDesigner')}
+          className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+            mode === 'solutionDesigner'
+              ? 'bg-blue-500 text-white shadow-sm'
+              : 'hover:bg-gray-100 dark:hover:bg-slate-700'
+          }`}
+          style={mode !== 'solutionDesigner' ? { color: 'var(--text-secondary)' } : undefined}
+        >
+          Solution Designer
+        </button>
       </div>
 
       <div className="h-6 w-px bg-gray-200 dark:bg-slate-700" />

@@ -9,7 +9,18 @@ import {
   MarkerType,
 } from '@xyflow/react';
 import dagre from '@dagrejs/dagre';
-import type { StoreState, ProcessNode, ProcessEdge, ProcessNodeType, ProcessNodeData } from '../types';
+import type {
+  StoreState,
+  ProcessNode,
+  ProcessEdge,
+  ProcessNodeType,
+  ProcessNodeData,
+  SolutionNodeType,
+  AppNodeType,
+  CommunicationProtocol,
+  DataField,
+  DesignerMode,
+} from '../types';
 
 let idCounter = 0;
 const getId = () => `node_${++idCounter}`;
@@ -21,6 +32,33 @@ const NODE_DEFAULTS: Record<ProcessNodeType, { label: string; color: string; wid
   decision: { label: 'Decision', color: '#f59e0b', width: 160, height: 100 },
   subprocess: { label: 'Subprocess', color: '#8b5cf6', width: 180, height: 80 },
   delay: { label: 'Delay', color: '#6b7280', width: 160, height: 70 },
+};
+
+const SOLUTION_NODE_DEFAULTS: Record<SolutionNodeType, { label: string; color: string; width: number; height: number }> = {
+  plc: { label: 'PLC', color: '#0ea5e9', width: 180, height: 80 },
+  plcDataReader: { label: 'PLC Data Reader', color: '#06b6d4', width: 200, height: 80 },
+  msSqlServer: { label: 'MS SQL Server', color: '#8b5cf6', width: 200, height: 80 },
+  azureFunction: { label: 'Azure Function', color: '#f59e0b', width: 200, height: 80 },
+  restApi: { label: 'REST API', color: '#22c55e', width: 180, height: 80 },
+  kafka: { label: 'Kafka', color: '#ef4444', width: 180, height: 80 },
+};
+
+const ALL_NODE_DEFAULTS: Record<AppNodeType, { label: string; color: string; width: number; height: number }> = {
+  ...NODE_DEFAULTS,
+  ...SOLUTION_NODE_DEFAULTS,
+};
+
+export const PROTOCOL_LABELS: Record<CommunicationProtocol, string> = {
+  siemensS7: 'Siemens S7',
+  opcUa: 'OPC UA',
+  modbusTcp: 'Modbus TCP',
+  mqtt: 'MQTT',
+  httpRest: 'HTTP/REST',
+  grpc: 'gRPC',
+  kafka: 'Kafka',
+  amqp: 'AMQP',
+  tcpIp: 'TCP/IP',
+  azureServiceBus: 'Azure Service Bus',
 };
 
 const createInitialNodes = (): ProcessNode[] => [
@@ -82,6 +120,7 @@ export const useStore = create<StoreState>((set, get) => ({
   selectedNodeId: null,
   selectedEdgeId: null,
   darkMode: window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false,
+  mode: 'processFlow' as DesignerMode,
   history: [{ nodes: structuredClone(initialNodes), edges: structuredClone(initialEdges) }],
   historyIndex: 0,
 
@@ -99,20 +138,24 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   onConnect: (connection: Connection) => {
-    const { edges, pushHistory } = get();
+    const { edges, mode, pushHistory } = get();
     pushHistory();
+    const newEdge: Record<string, unknown> = {
+      ...connection,
+      markerEnd: { type: MarkerType.ArrowClosed },
+    };
+    if (mode === 'solutionDesigner') {
+      newEdge.data = { protocol: undefined, dataFields: [] };
+    }
     set({
-      edges: addEdge(
-        { ...connection, markerEnd: { type: MarkerType.ArrowClosed } },
-        edges,
-      ) as ProcessEdge[],
+      edges: addEdge(newEdge as ProcessEdge, edges) as ProcessEdge[],
     });
   },
 
-  addNode: (type: ProcessNodeType, position: { x: number; y: number }) => {
+  addNode: (type: AppNodeType, position: { x: number; y: number }) => {
     const { nodes, pushHistory } = get();
     pushHistory();
-    const defaults = NODE_DEFAULTS[type];
+    const defaults = ALL_NODE_DEFAULTS[type];
     const newNode: ProcessNode = {
       id: getId(),
       type,
@@ -162,6 +205,8 @@ export const useStore = create<StoreState>((set, get) => ({
   setSelectedNodeId: (id) => set({ selectedNodeId: id, selectedEdgeId: null }),
   setSelectedEdgeId: (id) => set({ selectedEdgeId: id, selectedNodeId: null }),
 
+  setMode: (mode: DesignerMode) => set({ mode }),
+
   toggleDarkMode: () => {
     set({ darkMode: !get().darkMode });
   },
@@ -204,16 +249,23 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   exportToJson: () => {
-    const { nodes, edges } = get();
-    return JSON.stringify({ nodes, edges }, null, 2);
+    const { nodes, edges, mode } = get();
+    return JSON.stringify({ nodes, edges, mode }, null, 2);
   },
 
   importFromJson: (json: string) => {
     try {
-      const { nodes, edges } = JSON.parse(json);
+      const parsed = JSON.parse(json);
+      const { nodes, edges, mode } = parsed;
       const { pushHistory } = get();
       pushHistory();
-      set({ nodes, edges, selectedNodeId: null, selectedEdgeId: null });
+      set({
+        nodes,
+        edges,
+        mode: mode || 'processFlow',
+        selectedNodeId: null,
+        selectedEdgeId: null,
+      });
     } catch {
       console.error('Invalid JSON');
     }
@@ -229,7 +281,7 @@ export const useStore = create<StoreState>((set, get) => ({
     g.setGraph({ rankdir: 'TB', nodesep: 60, ranksep: 80, marginx: 40, marginy: 40 });
 
     nodes.forEach((node) => {
-      const defaults = NODE_DEFAULTS[node.type as ProcessNodeType] || { width: 180, height: 80 };
+      const defaults = ALL_NODE_DEFAULTS[node.type as AppNodeType] || { width: 180, height: 80 };
       g.setNode(node.id, { width: defaults.width, height: defaults.height });
     });
 
@@ -241,7 +293,7 @@ export const useStore = create<StoreState>((set, get) => ({
 
     const layoutedNodes = nodes.map((node) => {
       const pos = g.node(node.id);
-      const defaults = NODE_DEFAULTS[node.type as ProcessNodeType] || { width: 180, height: 80 };
+      const defaults = ALL_NODE_DEFAULTS[node.type as AppNodeType] || { width: 180, height: 80 };
       return {
         ...node,
         position: {
@@ -252,5 +304,29 @@ export const useStore = create<StoreState>((set, get) => ({
     });
 
     set({ nodes: layoutedNodes });
+  },
+
+  updateEdgeProtocol: (edgeId: string, protocol: CommunicationProtocol) => {
+    const { edges, pushHistory } = get();
+    pushHistory();
+    set({
+      edges: edges.map((e) =>
+        e.id === edgeId
+          ? { ...e, label: PROTOCOL_LABELS[protocol], data: { ...(e.data as Record<string, unknown> || {}), protocol } }
+          : e,
+      ),
+    });
+  },
+
+  updateEdgeDataFields: (edgeId: string, dataFields: DataField[]) => {
+    const { edges, pushHistory } = get();
+    pushHistory();
+    set({
+      edges: edges.map((e) =>
+        e.id === edgeId
+          ? { ...e, data: { ...(e.data as Record<string, unknown> || {}), dataFields } }
+          : e,
+      ),
+    });
   },
 }));

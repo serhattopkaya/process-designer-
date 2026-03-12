@@ -2,6 +2,35 @@ import type { Node, Edge, NodeChange, EdgeChange, Connection } from '@xyflow/rea
 
 export type ProcessNodeType = 'start' | 'end' | 'processStep' | 'decision' | 'subprocess' | 'delay';
 
+export type SolutionNodeType = 'plc' | 'plcDataReader' | 'msSqlServer' | 'azureFunction' | 'restApi' | 'kafka';
+
+export type AppNodeType = ProcessNodeType | SolutionNodeType;
+
+export type DesignerMode = 'processFlow' | 'solutionDesigner';
+
+export type CommunicationProtocol =
+  | 'siemensS7'
+  | 'opcUa'
+  | 'modbusTcp'
+  | 'mqtt'
+  | 'httpRest'
+  | 'grpc'
+  | 'kafka'
+  | 'amqp'
+  | 'tcpIp'
+  | 'azureServiceBus';
+
+export interface DataField {
+  name: string;
+  type: 'string' | 'int' | 'float' | 'bool' | 'datetime' | 'json';
+}
+
+export interface SolutionEdgeData {
+  protocol?: CommunicationProtocol;
+  dataFields?: DataField[];
+  [key: string]: unknown;
+}
+
 export interface ProcessNodeData {
   label: string;
   description?: string;
@@ -21,6 +50,7 @@ export interface StoreState {
   selectedNodeId: string | null;
   selectedEdgeId: string | null;
   darkMode: boolean;
+  mode: DesignerMode;
   history: { nodes: ProcessNode[]; edges: ProcessEdge[] }[];
   historyIndex: number;
 
@@ -30,7 +60,7 @@ export interface StoreState {
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection) => void;
-  addNode: (type: ProcessNodeType, position: { x: number; y: number }) => void;
+  addNode: (type: AppNodeType, position: { x: number; y: number }) => void;
   deleteSelected: () => void;
   updateNodeData: (nodeId: string, data: Partial<ProcessNodeData>) => void;
   updateEdgeData: (edgeId: string, data: Partial<ProcessEdge>) => void;
@@ -38,6 +68,9 @@ export interface StoreState {
   // Selection
   setSelectedNodeId: (id: string | null) => void;
   setSelectedEdgeId: (id: string | null) => void;
+
+  // Mode
+  setMode: (mode: DesignerMode) => void;
 
   // Theme
   toggleDarkMode: () => void;
@@ -53,4 +86,8 @@ export interface StoreState {
 
   // Layout
   autoLayout: () => void;
+
+  // Solution edge helpers
+  updateEdgeProtocol: (edgeId: string, protocol: CommunicationProtocol) => void;
+  updateEdgeDataFields: (edgeId: string, dataFields: DataField[]) => void;
 }
