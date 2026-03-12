@@ -76,7 +76,9 @@ export default function PropertiesPanel() {
     );
   }
 
-  const nodeData = selectedNode!.data as ProcessNodeData;
+  if (!selectedNode) return null;
+
+  const nodeData = selectedNode.data as ProcessNodeData;
 
   return (
     <div className="flex w-64 flex-col border-l bg-white/80 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/80"
@@ -96,7 +98,7 @@ export default function PropertiesPanel() {
         {/* Node Type */}
         <div className="rounded-md p-2" style={{ background: 'var(--bg-secondary)' }}>
           <span className="text-xs font-medium capitalize" style={{ color: 'var(--text-secondary)' }}>
-            {selectedNode!.type?.replace(/([A-Z])/g, ' $1')}
+            {selectedNode.type?.replace(/([A-Z])/g, ' $1')}
           </span>
         </div>
 
@@ -106,19 +108,19 @@ export default function PropertiesPanel() {
           <input
             type="text"
             value={nodeData.label}
-            onChange={(e) => updateNodeData(selectedNode!.id, { label: e.target.value })}
+            onChange={(e) => updateNodeData(selectedNode.id, { label: e.target.value })}
             className="w-full rounded-md border px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             style={{ borderColor: 'var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
           />
         </div>
 
         {/* Description */}
-        {(selectedNode!.type === 'processStep' || selectedNode!.type === 'subprocess') && (
+        {(selectedNode.type === 'processStep' || selectedNode.type === 'subprocess') && (
           <div>
             <label className="mb-1 block text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Description</label>
             <textarea
               value={nodeData.description || ''}
-              onChange={(e) => updateNodeData(selectedNode!.id, { description: e.target.value })}
+              onChange={(e) => updateNodeData(selectedNode.id, { description: e.target.value })}
               className="w-full resize-none rounded-md border px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"
               style={{ borderColor: 'var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
               rows={3}
@@ -128,13 +130,13 @@ export default function PropertiesPanel() {
         )}
 
         {/* Duration (for delay nodes) */}
-        {selectedNode!.type === 'delay' && (
+        {selectedNode.type === 'delay' && (
           <div>
             <label className="mb-1 block text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Duration</label>
             <input
               type="text"
               value={nodeData.duration || ''}
-              onChange={(e) => updateNodeData(selectedNode!.id, { duration: e.target.value })}
+              onChange={(e) => updateNodeData(selectedNode.id, { duration: e.target.value })}
               className="w-full rounded-md border px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"
               style={{ borderColor: 'var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
               placeholder="e.g. 2 hours"
@@ -148,7 +150,7 @@ export default function PropertiesPanel() {
           <input
             type="text"
             value={nodeData.assignee || ''}
-            onChange={(e) => updateNodeData(selectedNode!.id, { assignee: e.target.value })}
+            onChange={(e) => updateNodeData(selectedNode.id, { assignee: e.target.value })}
             className="w-full rounded-md border px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             style={{ borderColor: 'var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
             placeholder="Assign to..."
@@ -162,7 +164,7 @@ export default function PropertiesPanel() {
             {COLORS.map((color) => (
               <button
                 key={color}
-                onClick={() => updateNodeData(selectedNode!.id, { color })}
+                onClick={() => updateNodeData(selectedNode.id, { color })}
                 className="h-6 w-6 rounded-full border-2 transition-transform hover:scale-110"
                 style={{
                   background: color,

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Copy, Trash2, Clipboard } from 'lucide-react';
+import { Copy, Trash2 } from 'lucide-react';
 
 interface ContextMenuProps {
   x: number;

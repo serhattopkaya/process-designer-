@@ -17,17 +17,15 @@ import {
 import { useStore } from '../store/useStore';
 
 export default function Toolbar() {
-  const {
-    undo,
-    redo,
-    autoLayout,
-    exportToJson,
-    importFromJson,
-    darkMode,
-    toggleDarkMode,
-    historyIndex,
-    history,
-  } = useStore();
+  const undo = useStore((s) => s.undo);
+  const redo = useStore((s) => s.redo);
+  const autoLayout = useStore((s) => s.autoLayout);
+  const exportToJson = useStore((s) => s.exportToJson);
+  const importFromJson = useStore((s) => s.importFromJson);
+  const darkMode = useStore((s) => s.darkMode);
+  const toggleDarkMode = useStore((s) => s.toggleDarkMode);
+  const canUndo = useStore((s) => s.historyIndex > 0);
+  const canRedo = useStore((s) => s.historyIndex < s.history.length - 1);
 
   const { zoomIn, zoomOut, fitView } = useReactFlow();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -73,11 +71,10 @@ export default function Toolbar() {
       a.href = dataUrl;
       a.download = 'process-diagram.png';
       a.click();
+    }).catch((err) => {
+      console.error('Failed to export image:', err);
     });
   }, [darkMode]);
-
-  const canUndo = historyIndex > 0;
-  const canRedo = historyIndex < history.length - 1;
 
   const btnClass =
     'flex items-center justify-center rounded-lg p-2 transition-all hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed';

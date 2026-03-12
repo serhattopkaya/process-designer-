@@ -4,6 +4,7 @@ import {
   MiniMap,
   Background,
   BackgroundVariant,
+  ConnectionLineType,
   useReactFlow,
   type NodeMouseHandler,
 } from '@xyflow/react';
@@ -12,7 +13,7 @@ import '@xyflow/react/dist/style.css';
 import { useStore } from '../store/useStore';
 import { nodeTypes } from './nodes';
 import ContextMenu from './ContextMenu';
-import type { ProcessNodeType, ProcessNode } from '../types';
+import type { ProcessNodeType, ProcessNode, ProcessEdge } from '../types';
 
 export default function Canvas() {
   const {
@@ -61,7 +62,7 @@ export default function Canvas() {
   );
 
   const onEdgeClick = useCallback(
-    (_event: React.MouseEvent, edge: any) => {
+    (_event: React.MouseEvent, edge: ProcessEdge) => {
       setSelectedEdgeId(edge.id);
     },
     [setSelectedEdgeId],
@@ -74,7 +75,7 @@ export default function Canvas() {
   }, [setSelectedNodeId, setSelectedEdgeId]);
 
   const onNodeContextMenu = useCallback(
-    (event: React.MouseEvent, node: any) => {
+    (event: React.MouseEvent, node: ProcessNode) => {
       event.preventDefault();
       setSelectedNodeId(node.id);
       setContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id });
@@ -118,7 +119,7 @@ export default function Canvas() {
           type: 'smoothstep',
           animated: false,
         }}
-        connectionLineType={"smoothstep" as any}
+        connectionLineType={ConnectionLineType.SmoothStep}
         deleteKeyCode="Delete"
         className="bg-gray-50 dark:bg-slate-950"
       >
@@ -144,14 +145,8 @@ export default function Canvas() {
           x={contextMenu.x}
           y={contextMenu.y}
           onClose={() => setContextMenu(null)}
-          onDelete={() => {
-            deleteSelected();
-            setContextMenu(null);
-          }}
-          onDuplicate={() => {
-            handleDuplicate();
-            setContextMenu(null);
-          }}
+          onDelete={deleteSelected}
+          onDuplicate={handleDuplicate}
         />
       )}
     </div>

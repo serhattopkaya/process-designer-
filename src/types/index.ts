@@ -1,4 +1,4 @@
-import type { Node, Edge } from '@xyflow/react';
+import type { Node, Edge, NodeChange, EdgeChange, Connection } from '@xyflow/react';
 
 export type ProcessNodeType = 'start' | 'end' | 'processStep' | 'decision' | 'subprocess' | 'delay';
 
@@ -13,11 +13,7 @@ export interface ProcessNodeData {
 }
 
 export type ProcessNode = Node<ProcessNodeData>;
-export type ProcessEdge = Edge & {
-  data?: {
-    label?: string;
-  };
-};
+export type ProcessEdge = Edge;
 
 export interface StoreState {
   nodes: ProcessNode[];
@@ -31,9 +27,9 @@ export interface StoreState {
   // Node/Edge actions
   setNodes: (nodes: ProcessNode[]) => void;
   setEdges: (edges: ProcessEdge[]) => void;
-  onNodesChange: (changes: any) => void;
-  onEdgesChange: (changes: any) => void;
-  onConnect: (connection: any) => void;
+  onNodesChange: (changes: NodeChange[]) => void;
+  onEdgesChange: (changes: EdgeChange[]) => void;
+  onConnect: (connection: Connection) => void;
   addNode: (type: ProcessNodeType, position: { x: number; y: number }) => void;
   deleteSelected: () => void;
   updateNodeData: (nodeId: string, data: Partial<ProcessNodeData>) => void;

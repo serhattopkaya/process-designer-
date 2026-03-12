@@ -73,13 +73,16 @@ const createInitialEdges = (): ProcessEdge[] => [
 
 const MAX_HISTORY = 50;
 
+const initialNodes = createInitialNodes();
+const initialEdges = createInitialEdges();
+
 export const useStore = create<StoreState>((set, get) => ({
-  nodes: createInitialNodes(),
-  edges: createInitialEdges(),
+  nodes: initialNodes,
+  edges: initialEdges,
   selectedNodeId: null,
   selectedEdgeId: null,
   darkMode: window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false,
-  history: [{ nodes: createInitialNodes(), edges: createInitialEdges() }],
+  history: [{ nodes: structuredClone(initialNodes), edges: structuredClone(initialEdges) }],
   historyIndex: 0,
 
   setNodes: (nodes) => set({ nodes }),
@@ -160,22 +163,15 @@ export const useStore = create<StoreState>((set, get) => ({
   setSelectedEdgeId: (id) => set({ selectedEdgeId: id, selectedNodeId: null }),
 
   toggleDarkMode: () => {
-    const { darkMode } = get();
-    const newMode = !darkMode;
-    if (newMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    set({ darkMode: newMode });
+    set({ darkMode: !get().darkMode });
   },
 
   pushHistory: () => {
     const { nodes, edges, history, historyIndex } = get();
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push({
-      nodes: JSON.parse(JSON.stringify(nodes)),
-      edges: JSON.parse(JSON.stringify(edges)),
+      nodes: structuredClone(nodes),
+      edges: structuredClone(edges),
     });
     if (newHistory.length > MAX_HISTORY) newHistory.shift();
     set({ history: newHistory, historyIndex: newHistory.length - 1 });
@@ -186,8 +182,8 @@ export const useStore = create<StoreState>((set, get) => ({
     if (historyIndex <= 0) return;
     const prev = history[historyIndex - 1];
     set({
-      nodes: JSON.parse(JSON.stringify(prev.nodes)),
-      edges: JSON.parse(JSON.stringify(prev.edges)),
+      nodes: structuredClone(prev.nodes),
+      edges: structuredClone(prev.edges),
       historyIndex: historyIndex - 1,
       selectedNodeId: null,
       selectedEdgeId: null,
@@ -199,8 +195,8 @@ export const useStore = create<StoreState>((set, get) => ({
     if (historyIndex >= history.length - 1) return;
     const next = history[historyIndex + 1];
     set({
-      nodes: JSON.parse(JSON.stringify(next.nodes)),
-      edges: JSON.parse(JSON.stringify(next.edges)),
+      nodes: structuredClone(next.nodes),
+      edges: structuredClone(next.edges),
       historyIndex: historyIndex + 1,
       selectedNodeId: null,
       selectedEdgeId: null,

@@ -1,23 +1,17 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect } from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
 import Toolbox from './components/Toolbox';
 import Canvas from './components/Canvas';
 import PropertiesPanel from './components/PropertiesPanel';
 import Toolbar from './components/Toolbar';
-import Toast, { type ToastData } from './components/Toast';
 import { useStore } from './store/useStore';
 
 export default function App() {
   const { darkMode, undo, redo, deleteSelected } = useStore();
-  const [toasts, setToasts] = useState<ToastData[]>([]);
 
-  // Apply dark mode on mount
+  // Apply dark mode class on mount and when toggled
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
 
   // Keyboard shortcuts
@@ -43,10 +37,6 @@ export default function App() {
     return () => window.removeEventListener('keydown', handler);
   }, [undo, redo, deleteSelected]);
 
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, []);
-
   return (
     <ReactFlowProvider>
       <div className="flex h-screen w-screen flex-col" style={{ background: 'var(--bg-primary)' }}>
@@ -55,13 +45,6 @@ export default function App() {
           <Toolbox />
           <Canvas />
           <PropertiesPanel />
-        </div>
-
-        {/* Toast container */}
-        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
-          {toasts.map((t) => (
-            <Toast key={t.id} toast={t} onRemove={removeToast} />
-          ))}
         </div>
       </div>
     </ReactFlowProvider>
